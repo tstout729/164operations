@@ -17,110 +17,105 @@
     <div id="map"></div>
 
     <script>
-        // List of property addresses
+        // List of property addresses and their zip codes
         const addresses = [
-            "2114 E Burnside St Portland, Or 97214",
-            "5045 N Lombard St Portland, OR 97203",
-            "4065 N Mississippi Ave Portland, OR, 97227",
-            "4128 N Montana Ave Portland, OR 97227",
-            "4980 N Vancouver Portland, OR 97217",
-            "5040 NE 18th Ave Portland, OR 97211",
-            "1705 NE 19th Ave Portland, OR, 97212",
-            "1707 NE 19th Ave Portland, OR, 97212",
-            "1715 NE 19th Ave Portland, OR, 97212",
-            "1827 A NE 19th Ave Portland, OR, 97212",
-            "1827 B NE 19th Ave Portland, OR, 97212",
-            "915 NE 23rd Ave Portland, OR, 97232",
-            "915 NE 23rd Ave TH1 Portland, OR, 97232",
-            "5011 NE 27th Ave Portland, OR, 97211",
-            "5016 NE 29th Ave Portland, OR, 97211",
-            "502 NE 29th Ave Portland, OR 97232",
-            "508 NE 56th Ave Portland, OR, 97213",
-            "512 NE 56th Ave Portland, OR, 97213",
-            "516 NE 56th Ave Portland, OR, 97213",
-            "520 NE 56th Ave Portland, OR, 97213",
-            "315 NE Beech St Portland, OR 97212",
-            "317 NE Beech St Portland, OR 97212",
-            "3565 NE Broadway St Portland , OR 97213",
-            "3115 NE Couch St Portland OR 97232",
-            "3117 NE Couch St Portland OR 97232",
-            "533 NE Fargo St Portland, OR 97212",
-            "2034 NE Flanders St Portland OR 97232",
-            "4622 NE Garfield Ave Portland, OR 97211",
-            "4500 NE Garfield Ave Portland , OR 97211",
-            "4500 NE Garfield Ave Portland, OR 97211",
-            "3046 NE Glisan St, Portland, OR 97232",
-            "321 NE Knott St Portland, OR, 97212",
-            "529 NW 21st Ave Portland OR 97210",
-            "2015 NW 21st Ave Portland, OR, 97209",
-            "18 NW 22nd Pl. Portland, OR 97210",
-            "1601 NW 23rd St Portland, OR 97210",
-            "1605 NW 23rd St Portland, OR 97210",
-            "1603 NW 23rd St Portland, OR 97210",
-            "1607 NW 23rd St Portland, OR 97210",
-            "2309 NW Raleigh St Portland, OR 97210",
-            "2311 NW Raleigh St Portland, OR 97210",
-            "2313 NW Raleigh St Portland, OR 97210",
-            "2315 NW Raleigh St Portland, OR 97210",
-            "1225 NW 25th Ave Portland, OR, 97210",
-            "2104 NW Everett St Portland, OR 97210",
-            "2249 NW Glisan St Portland, OR 97210",
-            "2312 NW Kearney ST Portland OR 97210",
-            "2319 NW Raleigh St Portland, OR 97210",
-            "6626 NW Thompson Rd Portland, OR  97229",
-            "2515 NW Upshur St Portland, OR 97210",
-            "2513 NW Upshur St, OR 97210",
-            "2515 NW Upshur St, OR 97210",
-            "3511 S Corbett Apt 1 Portland, OR, 97239",
-            "3511 S Corbett Apt 2 Portland, OR, 97239",
-            "3511 S Corbett Apt 3 Portland, OR, 97239",
-            "3511 S Corbett Apt 4 Portland, OR, 97239",
-            "2828 S Water Ave Portland, OR, 97201",
-            "3029 S Water Ave Portland, OR, 97201",
-            "2008 SE 11th Ave Apt 1 Portland, OR, 97210",
-            "2008 SE 11th Ave Portland, OR, 97210",
-            "2008 SE 11th Ave Apt 2 Portland, OR, 97210",
-            "1032 SE 12th Ave. Portland, OR 97214",
-            "1036 SE 12th Ave. Portland, OR 97214",
-            "1025 SE 12th Ave. Portland, OR 97214",
-            "1428 SE 19th Ave Portland, OR 97214",
-            "1428 SE 19th Ave Portland, OR 97214",
-            "3324 SE 24th Ave Portland, OR 97202",
-            "917 SE 25th Ave Portland, OR, 97214",
-            "1414 SE 25th Ave Portland, OR 97214",
-            "1416 SE 25th Ave Portland, OR 97214",
-            "1418 SE 25th Ave Portland, OR 97214",
-            "1420 SE 25th Ave Portland, OR 97214",
-            "1426 SE 25th Ave Portland, OR 97214",
-            "1427 SE 25th Ave Portland, OR 97214",
-            "911 SE 26th Ave Portland, OR 97214",
-            "4222 SE 28th Ave Portland, OR, 97202",
-            "1425 SE 41st Ave Portland, OR, 97214",
-            "2005 SE 50th Ave Portland, OR 97215",
-            "2005 SE 50th Unit 3 Portland, OR 97215",
-            "2706 SE Ash St Portland, OR 97214",
-            "3820 SE Belmont St Portland, OR 97214",
-            "915 SE 29th Ave Portland, OR 97214",
-            "1613 SE Cesar E Chavez Blvd Portland, OR 97214",
-            "2118 SE Division St Unit 1 Portland OR 97202",
-            "2118 SE Division St Portland OR 97202",
-            "2118 SE Division St Unit 2 Portland OR 97202",
-            "5222 SE Holgate BLVD Apt A Portland, OR, 97206",
-            "5222 SE Holgate BLVD Apt B Portland, OR, 97206",
-            "5222 SE Holgate BLVD Apt C Portland, OR, 97206",
-            "5222 SE Holgate BLVD Apt D Portland, OR, 97206",
-            "2266 SE Madison St, Portland, OR 97214",
-            "4335 SE Milwaukie Ave Portland, OR, 97202",
-            "2036 SE Morrison St Portland, OR, 97214",
-            "2038 SE Morrison St Portland, OR 97214",
-            "1235 SE Oak St Portland, OR, 97214",
-            "2215 SE Powell BLVD Portland, OR 97202",
-            "2303 SE 11th Ave Portland, OR, 97214",
-            "1028 SE Sherman St Portland, OR, 97214",
-            "1030 SE Sherman St Portland, OR, 97214",
-            "1217 SE Taylor St Portland, OR 97214",
-            "1200 SW 20th Ave Portland, OR, 97205"
+            { address: "2114 E Burnside St Portland, Or 97214", zip: "97214" },
+            { address: "5045 N Lombard St Portland, OR 97203", zip: "97203" },
+            { address: "4065 N Mississippi Ave Portland, OR 97227", zip: "97227" },
+            { address: "4128 N Montana Ave Portland, OR 97227", zip: "97227" },
+            { address: "4980 N Vancouver Portland, OR 97217", zip: "97217" },
+            { address: "5040 NE 18th Ave Portland, OR 97211", zip: "97211" },
+            { address: "1705 NE 19th Ave Portland, OR 97212", zip: "97212" },
+            { address: "1707 NE 19th Ave Portland, OR 97212", zip: "97212" },
+            { address: "1715 NE 19th Ave Portland, OR 97212", zip: "97212" },
+            { address: "1827 A NE 19th Ave Portland, OR 97212", zip: "97212" },
+            { address: "1827 B NE 19th Ave Portland, OR 97212", zip: "97212" },
+            { address: "915 NE 23rd Ave Portland, OR 97232", zip: "97232" },
+            { address: "915 NE 23rd Ave TH1 Portland, OR 97232", zip: "97232" },
+            { address: "5011 NE 27th Ave Portland, OR 97211", zip: "97211" },
+            { address: "5016 NE 29th Ave Portland, OR 97211", zip: "97211" },
+            { address: "502 NE 29th Ave Portland, OR 97232", zip: "97232" },
+            { address: "508 NE 56th Ave Portland, OR 97213", zip: "97213" },
+            { address: "512 NE 56th Ave Portland, OR 97213", zip: "97213" },
+            { address: "516 NE 56th Ave Portland, OR 97213", zip: "97213" },
+            { address: "520 NE 56th Ave Portland, OR 97213", zip: "97213" },
+            { address: "315 NE Beech St Portland, OR 97212", zip: "97212" },
+            { address: "317 NE Beech St Portland, OR 97212", zip: "97212" },
+            { address: "3565 NE Broadway St Portland , OR 97213", zip: "97213" },
+            { address: "3115 NE Couch St Portland OR 97232", zip: "97232" },
+            { address: "3117 NE Couch St Portland OR 97232", zip: "97232" },
+            { address: "533 NE Fargo St Portland, OR 97212", zip: "97212" },
+            { address: "2034 NE Flanders St Portland OR 97232", zip: "97232" },
+            { address: "4622 NE Garfield Ave Portland, OR 97211", zip: "97211" },
+            { address: "4500 NE Garfield Ave Portland , OR 97211", zip: "97211" },
+            { address: "3046 NE Glisan St, Portland, OR 97232", zip: "97232" },
+            { address: "321 NE Knott St Portland, OR 97212", zip: "97212" },
+            { address: "529 NW 21st Ave Portland OR 97210", zip: "97210" },
+            { address: "2015 NW 21st Ave Portland, OR 97209", zip: "97209" },
+            { address: "18 NW 22nd Pl. Portland, OR 97210", zip: "97210" },
+            { address: "1601 NW 23rd St Portland, OR 97210", zip: "97210" },
+            { address: "1605 NW 23rd St Portland, OR 97210", zip: "97210" },
+            { address: "1603 NW 23rd St Portland, OR 97210", zip: "97210" },
+            { address: "1607 NW 23rd St Portland, OR 97210", zip: "97210" },
+            { address: "2309 NW Raleigh St Portland, OR 97210", zip: "97210" },
+            { address: "2311 NW Raleigh St Portland, OR 97210", zip: "97210" },
+            { address: "2313 NW Raleigh St Portland, OR 97210", zip: "97210" },
+            { address: "2315 NW Raleigh St Portland, OR 97210", zip: "97210" },
+            { address: "1225 NW 25th Ave Portland, OR 97210", zip: "97210" },
+            { address: "2104 NW Everett St Portland, OR 97210", zip: "97210" },
+            { address: "2249 NW Glisan St Portland, OR 97210", zip: "97210" },
+            { address: "2312 NW Kearney ST Portland OR 97210", zip: "97210" },
+            { address: "6626 NW Thompson Rd Portland, OR 97229", zip: "97229" },
+            { address: "2515 NW Upshur St Portland, OR 97210", zip: "97210" },
+            { address: "3511 S Corbett Apt 1 Portland, OR 97239", zip: "97239" },
+            { address: "3511 S Corbett Apt 2 Portland, OR 97239", zip: "97239" },
+            { address: "2828 S Water Ave Portland, OR 97201", zip: "97201" },
+            { address: "3029 S Water Ave Portland, OR 97201", zip: "97201" },
+            { address: "2008 SE 11th Ave Apt 1 Portland, OR 97210", zip: "97210" },
+            { address: "1032 SE 12th Ave. Portland, OR 97214", zip: "97214" },
+            { address: "1428 SE 19th Ave Portland, OR 97214", zip: "97214" },
+            { address: "3324 SE 24th Ave Portland, OR 97202", zip: "97202" },
+            { address: "917 SE 25th Ave Portland, OR 97214", zip: "97214" },
+            { address: "2005 SE 50th Ave Portland, OR 97215", zip: "97215" },
+            { address: "1030 SE Sherman St Portland, OR 97214", zip: "97214" }
+            // Add more addresses if needed
         ];
+
+        // Function to return the correct icon color based on zip code
+        function getIconByZip(zip) {
+            switch (zip) {
+                case '97214':
+                    return 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'; // Blue for zip code 97214
+                case '97203':
+                    return 'http://maps.google.com/mapfiles/ms/icons/green-dot.png'; // Green for zip code 97203
+                case '97227':
+                    return 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'; // Red for zip code 97227
+                case '97217':
+                    return 'http://maps.google.com/mapfiles/ms/icons/yellow-dot.png'; // Yellow for zip code 97217
+                case '97211':
+                    return 'http://maps.google.com/mapfiles/ms/icons/orange-dot.png'; // Orange for zip code 97211
+                case '97212':
+                    return 'http://maps.google.com/mapfiles/ms/icons/purple-dot.png'; // Purple for zip code 97212
+                case '97232':
+                    return 'http://maps.google.com/mapfiles/ms/icons/pink-dot.png'; // Pink for zip code 97232
+                case '97210':
+                    return 'http://maps.google.com/mapfiles/ms/icons/cyan-dot.png'; // Cyan for zip code 97210
+                case '97213':
+                    return 'http://maps.google.com/mapfiles/ms/icons/green-dot.png'; // Green for zip code 97213
+                case '97229':
+                    return 'http://maps.google.com/mapfiles/ms/icons/yellow-dot.png'; // Yellow for zip code 97229
+                case '97239':
+                    return 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'; // Red for zip code 97239
+                case '97201':
+                    return 'http://maps.google.com/mapfiles/ms/icons/purple-dot.png'; // Purple for zip code 97201
+                case '97209':
+                    return 'http://maps.google.com/mapfiles/ms/icons/pink-dot.png'; // Pink for zip code 97209
+                case '97215':
+                    return 'http://maps.google.com/mapfiles/ms/icons/orange-dot.png'; // Orange for zip code 97215
+                default:
+                    return 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'; // Default to blue
+            }
+        }
 
         let map;
         let geocoder;
@@ -134,19 +129,20 @@
 
             geocoder = new google.maps.Geocoder();
 
-            // Loop through the addresses and place markers
-            addresses.forEach(address => {
-                geocodeAddress(address);
+            // Loop through the addresses and place markers with custom icons based on zip code
+            addresses.forEach(location => {
+                geocodeAddress(location.address, location.zip);
             });
         }
 
         // Function to geocode an address and place a marker
-        function geocodeAddress(address) {
+        function geocodeAddress(address, zip) {
             geocoder.geocode({ 'address': address }, function (results, status) {
                 if (status === 'OK') {
                     const marker = new google.maps.Marker({
                         map: map,
                         position: results[0].geometry.location,
+                        icon: getIconByZip(zip), // Set custom icon based on zip code
                         title: address,
                     });
 
