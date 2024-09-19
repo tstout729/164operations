@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property Map with Bed Count Filter, Nicknames, and Search Box</title>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDqJfBaI4DnP9Zj_XNy3b997PcU3oXY4hA&libraries=places&callback=initMap" async defer></script>
+    <style>
+        #map {
+            height: 600px;
+            width: 60%;
+            margin: 0 auto; /* Centers the map horizontally */
+        }
+
+        /* Style the dropdown and search box container */
+        #controls {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        /* Style the dropdown */
+        #bed-filter {
+            background-color: #fff;
+            padding: 5px;
+            border-radius: 3px;
+            box-shadow: 0 2px 6px rgba(0,0,0,.3);
+            width: 120px;
+            margin-right: 10px;
+        }
+
+        /* Style the search box */
+        #search-box {
+            background-color: #fff;
+            padding: 5px;
+            border-radius: 3px;
+            box-shadow: 0 2px 6px rgba(0,0,0,.3);
+            width: 240px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Property Locations</h1>
+
+    <!-- Controls for filtering and searching -->
+    <div id="controls">
+        <!-- Dropdown to filter by bed count -->
+        <select id="bed-filter">
+            <option value="all">All Beds</option>
+            <option value="1">1 Bed</option>
+            <option value="2">2 Beds</option>
+            <option value="3">3 Beds</option>
+            <option value="4">4 Beds</option>
+            <option value="5">5 Beds</option>
+            <option value="6">6 Beds</option>
+        </select>
+
+        <!-- Search box input -->
+        <input id="search-box" type="text" placeholder="Search for a property...">
+    </div>
+
+    <div id="map"></div>
+
+    <!-- Legend section for cardinal direction colors -->
+    <div id="legend">
+        <h3>Legend (Cardinal Directions)</h3>
+        <div class="legend-item">
+            <div class="legend-color blue"></div>
+            <span>N / NE - Blue</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color green"></div>
+            <span>S / SW - Green</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color yellow"></div>
+            <span>E / SE - Yellow</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color red"></div>
+            <span>NW - Red</span>
+        </div>
+    </div>
+
+    <script>
+        const addresses = [
+            { address: "2114 E Burnside St Portland, Or 97214", beds: 1, nickname: "E Burnside 1 (2114)" },
+            { address: "2114 E Burnside St Portland, Or 97214", beds: 2, nickname: "E Burnside 2 (2114)" },
+            { address: "2114 E Burnside St Portland, Or 97214", beds: 1, nickname: "E Burnside 3 (2114)" },
+            { address: "2114 E Burnside St Portland, Or 97214", beds: 1, nickname: "E Burnside 4 (2114)" },
+            { address: "2114 E Burnside St Portland, Or 97214", beds: 1, nickname: "E Burnside 5 (2114)" },
+            { address: "4065 N Mississippi Ave Portland, OR, 97227", beds: 1, nickname: "N Mississippi 1 (4065)" },
+            { address: "4065 N Mississippi Ave Portland, OR, 97227", beds: 1, nickname: "N Mississippi 2 (4065)" },
+            { address: "4065 N Mississippi Ave Portland, OR, 97227", beds: 1, nickname: "N Mississippi 3 (4065)" },
+            { address: "4065 N Mississippi Ave Portland, OR, 97227", beds: 1, nickname: "N Mississippi 4 (4065)" },
+            { address: "4065 N Mississippi Ave Portland, OR, 97227", beds: 3, nickname: "N Mississippi 5 (4065)" },
+            { address: "4128 N Montana Ave Portland, OR 97227", beds: 1, nickname: "N Montana TH1 (4128)" },
+            { address: "4128 N Montana Ave Portland, OR 97227", beds: 1, nickname: "N Montana TH2 (4128)" },
+            { address: "4128 N Montana Ave Portland, OR 97227", beds: 1, nickname: "N Montana TH3 (4128)" },
+            { address: "4980 N Vancouver Portland, OR 97217", beds: 2, nickname: "N Vancouver 101 (4980)" },
+            { address: "4980 N Vancouver Portland, OR 97217", beds: 3, nickname: "N Vancouver 102 (4980)" },
+            { address: "4980 N Vancouver Portland, OR 97217", beds: 2, nickname: "N Vancouver 201 (4980)" },
+            { address: "4980 N Vancouver Portland, OR 97217", beds: 4, nickname: "N Vancouver 202 (4980)" },
+            { address: "4980 N Vancouver Portland, OR 97217", beds: 2, nickname: "N Vancouver 301 (4980)" },
+            { address: "4980 N Vancouver Portland, OR 97217", beds: 4, nickname: "N Vancouver 302 (4980)" },
+            { address: "5040 NE 18th Ave", beds: 3, nickname: "NE 18th (5040)" },
+            { address: "1705 NE 19th Ave Portland, OR, 97212", beds: 1, nickname: "NE 19th (1705)" },
+            { address: "1707 NE 19th Ave Portland, OR, 97212", beds: 1, nickname: "NE 19th (1707)" },
+            { address: "1715 NE 19th Ave Portland, OR, 97212", beds: 1, nickname: "NE 19th (1715)" },
+            { address: "1827 A NE 19th Ave Portland, OR, 97212", beds: 1, nickname: "NE 19th (1827 A)" },
+            { address: "1827 B NE 19th Ave Portland, OR, 97212", beds: 1, nickname: "NE 19th (1827 B)" },
+            { address: "5011 NE 27th Ave Portland, OR, 97211", beds: 2, nickname: "NE 27th (5011)" },
+            { address: "5011 NE 27th Ave Portland, OR, 97211", beds: 2, nickname: "NE 27th TH1 (5011)" },
+            { address: "5011 NE 27th Ave Portland, OR, 97211", beds: 1, nickname: "NE 27th TH2 (5011)" },
+            { address: "5011 NE 27th Ave Portland, OR, 97211", beds: 1, nickname: "NE 27th TH3 (5011)" },
+            { address: "5016 NE 29th Ave Portland, OR, 97211", beds: 4, nickname: "NE 29th (5016)" },
+            { address: "502 NE 29th Ave Portland, OR 97232", beds: 3, nickname: "NE 29th (502)" },
+            { address: "5016 NE 29th Ave Portland, OR, 97211", beds: 1, nickname: "NE 29th TH1 (5016)" },
+            { address: "5016 NE 29th Ave Portland, OR, 97211", beds: 1, nickname: "NE 29th TH2 (5016)" },
+            { address: "508 NE 56th Ave Portland, OR, 97213", beds: 4, nickname: "NE 56th (508)" },
+            { address: "512 NE 56th Ave Portland, OR, 97213", beds: 4, nickname: "NE 56th (512)" },
+            { address: "516 NE 56th Ave Portland, OR, 97213", beds: 4, nickname: "NE 56th (516)" },
+            { address: "520 NE 56th Ave Portland, OR, 97213", beds: 3, nickname: "NE 56th (520)" },
+            { address: "315 NE Beech St Portland, OR 97212", beds: 3, nickname: "NE Beech (315)" },
+            { address: "317 NE Beech St Portland, OR 97212", beds: 3, nickname: "NE Beech (317)" },
+            { address: "3565 NE Broadway St Portland , OR 97213", beds: 4, nickname: "NE Broadway (3565)" },
+            { address: "533 NE Fargo St Portland, OR 97212", beds: 2, nickname: "NE Fargo (533)" },
+            { address: "2034 NE Flanders St Portland Or 97232", beds: 6, nickname: "NE Flanders" },
+            { address: "4622 NE Garfield Ave Portland, OR 97211", beds: 6, nickname: "NE Garfield (4622)" },
+            { address: "4500 NE Garfield Ave, Portland , OR 97211", beds: 3, nickname: "NE Garfield 1 (4500)" },
+            { address: "4500 NE Garfield Ave, Portland, OR 97211", beds: 1, nickname: "NE Garfield 2 (4500)" },
+            { address: "3046 NE Glisan St, Portland, OR 97232", beds: 4, nickname: "NE Glisan 1 (3046)" },
+            { address: "3046 NE Glisan St, Portland, OR 97232", beds: 2, nickname: "NE Glisan 2 (3046)" },
+            { address: "3046 NE Glisan St, Portland, OR 97232", beds: 2, nickname: "NE Glisan 3 (3046)" },
+            { address: "3046 NE Glisan St, Portland, OR 97232", beds: 1, nickname: "NE Glisan 4 (3046)" },
+            { address: "3046 NE Glisan St, Portland, OR 97232", beds: 1, nickname: "NE Glisan 5 (3046)" },
+            { address: "321 NE Knott St Portland, OR, 97212", beds: 3, nickname: "NE Knott (1)" },
+            { address: "321 NE Knott St Portland, OR, 97212", beds: 1, nickname: "NE Knott (2)" },
+            { address: "529 NW 21st Ave Portland OR 97210", beds: 4, nickname: "NW 21st (529)" },
+            { address: "2015 NW 21st Ave Portland, OR, 97209", beds: 6, nickname: "NW 21st Wilson (2015)" },
+            { address: "18 NW 22nd Pl. Portland, OR 97210", beds: 4, nickname: "NW 22nd 1 (18)" },
+            { address: "18 NW 22nd Pl. Portland, OR 97210", beds: 3, nickname: "NW 22nd 2 (18)" },
+            { address: "1601 NW 23rd St Portland, OR 97210", beds: 1, nickname: "NW 23rd [Pomeroy] (1601)" },
+            { address: "1603 NW 23rd St Portland, OR 97210", beds: 3, nickname: "NW 23rd [Pomeroy] (1603)" },
+            { address: "1605 NW 23rd St Portland, OR 97210", beds: 3, nickname: "NW 23rd [Pomeroy] (1605)" },
+            { address: "1607 NW 23rd St Portland, OR 97210", beds: 1, nickname: "NW 23rd [Pomeroy] (1607)" },
+            { address: "2309 NW Raleigh St Portland, OR 97210", beds: 1, nickname: "NW 23rd [Pomeroy] (2309)" },
+            { address: "2311 NW Raleigh St Portland, OR 97210", beds: 1, nickname: "NW 23rd [Pomeroy] (2311)" },
+            { address: "2313 NW Raleigh St Portland, OR 97210", beds: 1, nickname: "NW 23rd [Pomeroy] (2313)" },
+            { address: "2315 NW Raleigh St Portland, OR 97210", beds: 1, nickname: "NW 23rd [Pomeroy] (2315)" },
+            { address: "2104 NW Everett St Portland, OR 97210", beds: 4, nickname: "NW Everett 1 (2104)" },
+            { address: "2104 NW Everett St Portland, OR 97210", beds: 2, nickname: "NW Everett 2 (2104)" },
+            { address: "2104 NW Everett St Portland, OR 97210", beds: 2, nickname: "NW Everett 3 (2104)" },
+            { address: "2312 NW Kearney ST Portland OR 97210", beds: 4, nickname: "NW Kearney (2312)" },
+            { address: "2319 NW Raleigh St Portland, OR 97210", beds: 3, nickname: "NW Raleigh (2319)" },
+            { address: "2513 NW Upshur St, OR 97210", beds: 2, nickname: "NW Upshur (2513)" },
+            { address: "2515 NW Upshur St, OR 97210", beds: 2, nickname: "NW Upshur (2515)" },
+            { address: "3511 S Corbett Apt 1 Portland, OR, 97239", beds: 1, nickname: "S Corbett 1 (3511)" },
+            { address: "3511 S Corbett Apt 2 Portland, OR, 97239", beds: 1, nickname: "S Corbett 2 (3511)" },
+            { address: "3511 S Corbett Apt 3 Portland, OR, 97239", beds: 1, nickname: "S Corbett 3 (3511)" },
+            { address: "3511 S Corbett Apt 4 Portland, OR, 97239", beds: 1, nickname: "S Corbett 4 (3511)" },
+            { address: "2828 S Water Ave Portland, OR, 97201", beds: 6, nickname: "S Water (2828)" },
+            { address: "3029 S Water Ave Portland, OR, 97201", beds: 5, nickname: "S Water (3029)" },
+            { address: "2008 SE 11th Ave Apt 1 Portland, OR, 97210", beds: 2, nickname: "SE 11th 1 (2008)" },
+            { address: "2008 SE 11th Ave Apt 2 Portland, OR, 97210", beds: 1, nickname: "SE 11th 2 (2008)" },
+            { address: "1032 SE 12th Ave. Portland, OR 97214", beds: 3, nickname: "SE 12th (1032)" },
+            { address: "1036 SE 12th Ave. Portland, OR 97214", beds: 3, nickname: "SE 12th (1036)" },
+            { address: "1025 SE 12th Ave. Portland, OR 97214", beds: 0.5, nickname: "SE 12th 1 (1025)" },
+            { address: "1025 SE 12th Ave. Portland, OR 97214", beds: 0.5, nickname: "SE 12th 2 (1025)" },
+            { address: "1025 SE 12th Ave. Portland, OR 97214", beds: 2, nickname: "SE 12th 3 (1025)" },
+            { address: "1428 SE 19th Ave Portland , OR 97214", beds: 2, nickname: "SE 19th [Asylum] 101 (1428)" },
+            { address: "1428 SE 19th Ave Portland, OR 97214", beds: 1, nickname: "SE 19th [Asylum] 102 (1428)" },
+            { address: "1428 SE 19th Ave Portland, OR 97214", beds: 2, nickname: "SE 19th [Asylum] 201 (1428)" },
+            { address: "1428 SE 19th Ave Portland, OR 97214", beds: 1, nickname: "SE 19th [Asylum] 202 (1428)" },
+            { address: "1428 SE 19th Ave Portland, OR 97214", beds: 1, nickname: "SE 19th [Asylum] 204 (1428)" },
+            { address: "1428 SE 19th Ave Portland, OR 97214", beds: 11, nickname: "SE 19th [Asylum] 205 (1428)" },
+            { address: "1428 SE 19th Ave Portland, OR 97214", beds: 2, nickname: "SE 19th [Asylum] 206 (1428)" },
+            { address: "1428 SE 19th Ave Portland, OR 97214", beds: 2, nickname: "SE 19th [Asylum] 301 (1428)" },
+            { address: "1428 SE 19th Ave Portland, OR 97214", beds: 1, nickname: "SE 19th [Asylum] 302 (1428)" },
+            { address: "1428 SE 19th Ave Portland, OR 97214", beds: 1, nickname: "SE 19th [Asylum] 303 (1428)" },
+            { address: "1428 SE 19th Ave Portland, OR 97214", beds: 1, nickname: "SE 19th [Asylum] 304 (1428)" },
+            { address: "1428 SE 19th Ave Portland, OR 97214", beds: 4, nickname: "SE 19th [Asylum] 305 (1428)" },
+            { address: "3324 SE 24th Ave Portland , OR 97202", beds: 4, nickname: "SE 24th (3324)" },
+            { address: "3324 SE 24th Ave Portland , OR 97202", beds: 1, nickname: "SE 24th TH1 (3324)" },
+            { address: "3324 SE 24th Ave Portland , OR 97202", beds: 1, nickname: "SE 24th TH2 (3324)" },
+            { address: "3324 SE 24th Ave Portland , OR 97202", beds: 1, nickname: "SE 24th TH3 (3324)" },
+            { address: "917 SE 25th Ave Portland, OR, 97214", beds: 4, nickname: "SE 25th (917)" },
+            { address: "1414 SE 25th Ave Portland, OR 97214", beds: 1, nickname: "SE 25th [Towers] (1414)" },
+            { address: "1416 SE 25th Ave Portland, OR 97214", beds: 1, nickname: "SE 25th [Towers] (1416)" },
+            { address: "1418 SE 25th Ave Portland, OR 97214", beds: 1, nickname: "SE 25th [Towers] (1418)" },
+            { address: "1420 SE 25th Ave Portland, OR 97214", beds: 1, nickname: "SE 25th [Towers] (1420)" },
+            { address: "1426 SE 25th Ave Portland , OR 97214", beds: 1, nickname: "SE 25th [Towers] 1 (1426)" },
+            { address: "1426 SE 25th Ave Portland , OR 97214", beds: 1, nickname: "SE 25th [Towers] 2 (1426)" },
+            { address: "1426 SE 25th Ave Portland , OR 97214", beds: 3, nickname: "SE 25th [Towers] 3 (1426)" },
+            { address: "1426 SE 25th Ave Portland , OR 97214", beds: 3, nickname: "SE 25th [Towers] 4 (1426)" },
+            { address: "911 SE 26th Ave Portland, OR 97214", beds: 1, nickname: "SE 26th 1 (911)" },
+            { address: "911 SE 26th Ave Portland, OR 97214", beds: 1, nickname: "SE 26th 2 (911)" },
+            { address: "911 SE 26th Ave Portland, OR 97214", beds: 1, nickname: "SE 26th 3 (911)" },
+            { address: "911 SE 26th Ave Portland, OR 97214", beds: 1, nickname: "SE 26th 4 (911)" },
+            { address: "911 SE 26th Ave Portland, OR 97214", beds: 4, nickname: "SE 26th 5 (911)" },
+            { address: "4222 SE 28th Ave Portland, OR, 97202", beds: 2, nickname: "SE 28th (4222)" },
+            { address: "1425 SE 41st Ave Portland, OR, 97214", beds: 3, nickname: "SE 41st (1425)" },
+            { address: "2005 SE 50th Ave Portland, OR 97215", beds: 1, nickname: "SE 50th 1 (2005)" },
+            { address: "2005 SE 50th Ave Portland, OR 97215", beds: 1, nickname: "SE 50th 2 (2005)" },
+            { address: "2005 SE 50th Unit 3 (4920 SE Harrison St.)", beds: 2, nickname: "SE 50th 3 (2005)" },
+            { address: "2706 SE Ash St Portland, OR 97214", beds: 2, nickname: "SE Ash (2706)" },
+            { address: "3820 SE Belmont St, Portland, OR", beds: 4, nickname: "SE Belmont (3820)" },
+            { address: "915 SE 29th Ave Portland, OR 97214", beds: 4, nickname: "SE Belmont 1 (915)" },
+            { address: "915 SE 29th Ave Portland , OR 97214", beds: 2, nickname: "SE Belmont 2 (915)" },
+            { address: "1613 SE Cesar E Chavex Blvd Portland, OR 97214", beds: 3, nickname: "SE Cesar Chavez A (1613)" },
+            { address: "1613 SE Cesar E Chavex Blvd Portland, OR 97214", beds: 2, nickname: "SE Cesar Chavez B (1613)" },
+            { address: "1613 SE Cesar E Chavex Blvd Portland, OR 97214", beds: 1, nickname: "SE Cesar Chavez TH (1613)" },
+            { address: "2118 SE Division St Unit 1 Portland OR 97202", beds: 4, nickname: "SE Division [Crossroads] 1 (2118)" },
+            { address: "2118 SE Division St Unit 2 Portland OR 97202", beds: 3, nickname: "SE Division [Crossroads] 2 (2118)" },
+            { address: "5222 SE Holgate BLVD Apt A Portland, OR, 97206", beds: 1, nickname: "SE Holgate A (5222)" },
+            { address: "5222 SE Holgate BLVD Apt B Portland, OR, 97206", beds: 1, nickname: "SE Holgate B (5222)" },
+            { address: "5222 SE Holgate BLVD Apt C Portland, OR, 97206", beds: 1, nickname: "SE Holgate C (5222)" },
+            { address: "5222 SE Holgate BLVD Apt D Portland, OR, 97206", beds: 1, nickname: "SE Holgate D (5222)" },
+            { address: "2266 SE Madison St, Portland, OR 97214, USA", beds: 1, nickname: "SE Madison (2266)" },
+            { address: "4335 SE Milwaukie Ave Portland, OR", beds: 1, nickname: "SE Milwaukie 1 (4335)" },
+            { address: "4335 SE Milwaukie Ave Portland, OR", beds: 1, nickname: "SE Milwaukie 2 (4335)" },
+            { address: "4335 SE Milwaukie Ave Portland, OR", beds: 1, nickname: "SE Milwaukie 3 (4335)" },
+            { address: "4335 SE Milwaukie Ave Portland, OR", beds: 1, nickname: "SE Milwaukie 4 (4335)" },
+            { address: "4335 SE Milwaukie Ave Portland, OR", beds: 1, nickname: "SE Milwaukie 5 (4335)" },
+            { address: "4335 SE Milwaukie Ave Portland, OR", beds: 1, nickname: "SE Milwaukie 6 (4335)" },
+            { address: "4335 SE Milwaukie Ave Portland, OR", beds: 1, nickname: "SE Milwaukie 7 (4335)" },
+            { address: "4335 SE Milwaukie Ave Portland, OR", beds: 1, nickname: "SE Milwaukie 8 (4335)" },
+            { address: "4335 SE Milwaukie Ave Portland, OR", beds: 1, nickname: "SE Milwaukie 9 (4335)" },
+            { address: "2036 SE Morrison St Portland, OR, 97214", beds: 3, nickname: "SE Morrison 1 (2036)" },
+            { address: "2038 SE Morrison St Portland, OR 97214", beds: 2, nickname: "SE Morrison 2 (2038)" },
+            { address: "1235 SE Oak St Portland, OR, 97214", beds: 1, nickname: "SE Oak 4 (1235)" },
+            { address: "2215 SE Powell BLVD Portland, OR 97202", beds: 1, nickname: "SE Powell 1 (2215)" },
+            { address: "2215 SE Powell BLVD Portland, OR 97202", beds: 1, nickname: "SE Powell 2 (2215)" },
+            { address: "2215 SE Powell BLVD Portland, OR 97202", beds: 3, nickname: "SE Powell 3 (2215)" },
+            { address: "2215 SE Powell BLVD Portland, OR 97202", beds: 2, nickname: "SE Powell 4 (2215)" },
+            { address: "2303 SE 11th Ave Portland, OR, 97214", beds: 1, nickname: "SE Sherman 1 (2303)" },
+            { address: "1028 SE Sherman St Portland, OR, 97214", beds: 1, nickname: "SE Sherman 2 (1028)" },
+            { address: "1030 SE Sherman St Portland, OR, 97214", beds: 2, nickname: "SE Sherman 3 (1030)" },
+            { address: "1030 SE Sherman St Portland, OR, 97214", beds: 1, nickname: "SE Sherman 4 (1030)" },
+            { address: "1217 SE Taylor St. Portland, OR 97214", beds: 3, nickname: "SE Taylor (1217)" },
+            { address: "1200 SW 20th Ave Portland, OR, 97205", beds: 3, nickname: "SW 20th 1 (1200)" },
+            { address: "1200 SW 20th Ave Portland, OR, 97205", beds: 2, nickname: "SW 20th 2 (1200)" }
+            // Add more addresses with nicknames and bed counts here...
+        ];
+
+        let map, geocoder;
+        let markers = [];
+
+        function initMap() {
+            // Initialize the map centered on Portland
+            map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 12,
+                center: { lat: 45.5152, lng: -122.6784 }, // Portland center coordinates
+            });
+
+            geocoder = new google.maps.Geocoder();
+
+            // Display all markers initially
+            displayMarkers(addresses);
+
+            // Set up dropdown filter functionality
+            const bedFilter = document.getElementById('bed-filter');
+            bedFilter.addEventListener('change', function() {
+                const selectedBedCount = bedFilter.value;
+                filterMarkersByBedCount(selectedBedCount);
+            });
+
+            // Set up search functionality for Google Places
+            const input = document.getElementById('search-box');
+            const searchBox = new google.maps.places.SearchBox(input);
+
+            // Bias the SearchBox results towards the current map's viewport
+            map.addListener('bounds_changed', function() {
+                searchBox.setBounds(map.getBounds());
+            });
+
+            // Listen for the event fired when the user selects a prediction from the search
+            searchBox.addListener('places_changed', function() {
+                const places = searchBox.getPlaces();
+
+                if (places.length === 0) {
+                    return;
+                }
+
+                // Get the place details from the user input and zoom to it
+                const place = places[0];
+                if (!place.geometry) {
+                    console.log("Returned place contains no geometry");
+                    return;
+                }
+
+                // Add a marker for the searched location
+                const marker = new google.maps.Marker({
+                    map: map,
+                    position: place.geometry.location
+                });
+
+                markers.push(marker); // Store the new search marker
+
+                // Center the map on the searched location
+                map.setCenter(place.geometry.location);
+                map.setZoom(15); // Zoom in on the searched location
+
+                // Maintain all the existing markers based on the bed filter
+                filterMarkersByBedCount(document.getElementById('bed-filter').value);
+            });
+        }
+
+        // Function to display markers on the map
+        function displayMarkers(addressList) {
+            clearMarkers(); // Clear existing markers
+
+            addressList.forEach(location => {
+                geocodeAddress(location);
+            });
+        }
+
+        // Function to filter and display only matching markers based on the selected bed count
+        function filterMarkersByBedCount(selectedBedCount) {
+            let filteredAddresses;
+
+            if (selectedBedCount === 'all') {
+                filteredAddresses = addresses; // Show all if 'All Beds' is selected
+            } else {
+                filteredAddresses = addresses.filter(location => location.beds == selectedBedCount);
+            }
+
+            displayMarkers(filteredAddresses); // Display only matching markers
+        }
+
+        // Function to geocode an address and place a marker
+        function geocodeAddress(location) {
+            geocoder.geocode({ 'address': location.address }, function (results, status) {
+                if (status === 'OK') {
+                    const marker = new google.maps.Marker({
+                        map: map,
+                        position: results[0].geometry.location,
+                        icon: getIconByDirection(location.address), // Set custom icon based on cardinal direction
+                        title: location.nickname, // Set the marker's title to the nickname
+                    });
+
+                    markers.push(marker); // Store marker for clearing later
+
+                    const infoWindow = new google.maps.InfoWindow({
+                        content: `<h3>${location.nickname}</h3><p>Beds: ${location.beds}</p><p>Address: ${location.address}</p>`
+                    });
+
+                    // Create a variable to store the currently opened info window
+                    let currentlyOpenInfoWindow = null;
+
+                    marker.addListener('mouseover', function () {
+                        infoWindow.open(map, marker);
+                    });
+
+                    marker.addListener('mouseout', function () {
+                        // Only close the info window if it wasn't opened by a click
+                        if (currentlyOpenInfoWindow !== infoWindow) {
+                            infoWindow.close();
+                        }
+                    });
+
+                    marker.addListener('click', function () {
+                        // Close the previously opened info window, if there is one
+                        if (currentlyOpenInfoWindow) {
+                            currentlyOpenInfoWindow.close();
+                        }
+                        
+                        // Open the clicked marker's info window
+                        infoWindow.open(map, marker);
+
+                        // Set the clicked marker's info window as the currently open one
+                        currentlyOpenInfoWindow = infoWindow;
+                    });
+                } else {
+                    console.error('Geocode was not successful for the following reason: ' + status);
+                }
+            });
+        }
+
+        // Function to return the correct icon color based on cardinal direction in the address
+        function getIconByDirection(address) {
+            if (/\bN\b|\bNE\b/.test(address)) {
+                return 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'; // Blue for North/NE
+            } else if (/\bS\b|\bSW\b/.test(address)) {
+                return 'http://maps.google.com/mapfiles/ms/icons/green-dot.png'; // Green for South/SW
+            } else if (/\bE\b|\bSE\b/.test(address)) {
+                return 'http://maps.google.com/mapfiles/ms/icons/yellow-dot.png'; // Yellow for East/SE
+            } else if (/\bNW\b/.test(address)) {
+                return 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'; // Red for NW
+            } else {
+                return 'http://maps.google.com/mapfiles/ms/icons/purple-dot.png'; // Default purple marker
+            }
+        }
+
+        // Function to clear all existing markers from the map
+        function clearMarkers() {
+            markers.forEach(marker => {
+                marker.setMap(null); // Remove marker from the map
+            });
+            markers = []; // Empty the markers array
+        }
+    </script>
+</body>
+</html>
